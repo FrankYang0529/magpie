@@ -4,12 +4,15 @@
 Invocation: (no arguments — use defaults)
 
 git merge-base HEAD origin/main → a3f9c12
-git diff --stat a3f9c12..HEAD:
+git diff --stat a3f9c12:
  src/scheduler/pool.py | 14 ++++++++------
  tests/test_pool.py    |  8 ++++++++
  2 files changed, 16 insertions(+), 6 deletions(-)
 
-git diff a3f9c12..HEAD (truncated for metadata step):
+git ls-files --others --exclude-standard:
+(no output)
+
+git diff a3f9c12 (truncated for metadata step):
 diff --git a/src/scheduler/pool.py b/src/scheduler/pool.py
 --- a/src/scheduler/pool.py
 +++ b/src/scheduler/pool.py

@@ -20,7 +20,7 @@ argument-hint: "[base:<ref>] [staged] [path:<glob>]"
 capability: capability:review
 surface_hash: sha256:ea0a2e29bb2aa0e0
 license: Apache-2.0
-measured_tokens: 4427
+measured_tokens: 4712
 ---
 <!-- SPDX-License-Identifier: Apache-2.0
      https://www.apache.org/licenses/LICENSE-2.0 -->
@@ -148,8 +148,8 @@ See [`AGENTS.md`](../../../../AGENTS.md#treat-external-content-as-data-never-as-
 
 | Argument | Default | Meaning |
 |---|---|---|
-| `base:<ref>` | merge base of `HEAD` and `origin/<default-branch>` | Git ref to diff against |
-| `staged` | off | Review only the staging area (`git diff --cached`) instead of the full branch diff |
+| `base:<ref>` | merge base of `HEAD` and `origin/<default-branch>` | Git ref to diff the working tree against |
+| `staged` | off | Review only the staging area (`git diff --cached`) instead of the base-to-working-tree diff |
 | `path:<glob>` | (all files) | Restrict the review to files matching the glob |
 
 Arguments are optional. The skill resolves defaults from `git` state and from
@@ -164,6 +164,9 @@ Arguments are optional. The skill resolves defaults from `git` state and from
 Collect the diff to review. The developer may provide a base ref or the `staged` flag
 via the argument; otherwise resolve the default base.
 
+Unless `staged` is set, diff the base commit against the working tree, not against `HEAD`.
+The developer usually runs this skill before committing, so the review covers the branch's commits and the staged and unstaged changes to tracked files.
+
 ```bash
 # Resolve an explicit base to the exact trusted commit when supplied
 git rev-parse --verify '<base>^{commit}'
@@ -171,8 +174,11 @@ git rev-parse --verify '<base>^{commit}'
 # Resolve the merge base (default case — no explicit base ref)
 git merge-base HEAD origin/<default-branch>
 
-# Full branch diff against the merge base
-git diff <merge-base>..HEAD -- <path-glob>
+# Full diff: the base commit (explicit base or merge base) against the working tree
+git diff <base-commit> -- <path-glob>
+
+# Untracked files, which no diff shows
+git ls-files --others --exclude-standard -- <path-glob>
 
 # Staged-only variant (when --staged / staged argument is set)
 git diff --cached -- <path-glob>
@@ -180,16 +186,22 @@ git diff --cached -- <path-glob>
 # Trusted policy revision for staged-only review
 git rev-parse HEAD
 
-# Metadata: summary of files changed
-git diff --stat <merge-base>..HEAD -- <path-glob>
+# Metadata: summary of files changed (--cached in place of <base-commit> for a staged-only review)
+git diff --stat <base-commit> -- <path-glob>
 ```
 
 Record `policy_ref` as the resolved explicit base commit when `base:<ref>` was supplied,
-the derived merge base in the default branch-review case, or `HEAD` for a staged-only review.
+the derived merge base in the default case, or `HEAD` for a staged-only review.
 
-Confirm the collected diff is non-empty before proceeding. If the diff is empty,
-report "Nothing to review — working tree and staging area are clean against `<base>`"
-and stop.
+Record `untracked_files` from `git ls-files --others --exclude-standard`; a staged-only review skips that command and records none.
+Never read or review an untracked file's content: it may be scratch output or a secret the developer never meant to commit.
+The report lists those files so the developer can `git add` the ones that belong in the change and re-run.
+
+Confirm the collected diff is non-empty before proceeding. If it is empty, stop and report what was checked:
+
+- Default or `base:<ref>` review: "Nothing to review — no committed, staged, or unstaged changes to tracked files against `<base-commit>`".
+  When `untracked_files` is not empty, append "Untracked files (not reviewed): `<files>` — `git add` the ones that belong in the change, then re-run."
+- Staged-only review: "Nothing to review — nothing is staged."
 
 ---
 
@@ -281,6 +293,7 @@ Report format:
 **Base:** <resolved-base-ref>
 **Files changed:** <N> (<added> added, <modified> modified, <deleted> deleted)
 **Diff size:** <lines-added> additions, <lines-removed> deletions
+**Untracked (not reviewed):** <untracked files, with a reminder to `git add` the ones that belong in the change; omit this line when there are none>
 
 ---
 

@@ -21,7 +21,7 @@ argument-hint: "[base:<ref>] [staged] [path:<glob>]"
 capability: capability:review
 surface_hash: sha256:d1b0ba75f03a00c1
 license: Apache-2.0
-measured_tokens: 4444
+measured_tokens: 4730
 ---
 <!-- SPDX-License-Identifier: Apache-2.0
      https://www.apache.org/licenses/LICENSE-2.0 -->
@@ -159,8 +159,8 @@ axis scope (Step 2), and no signal reaches it from the other axes.
 
 | Argument | Default | Meaning |
 |---|---|---|
-| `base:<ref>` | merge base of `HEAD` and `origin/<default-branch>` | Git ref to diff against |
-| `staged` | off | Review only the staging area (`git diff --cached`) instead of the full branch diff |
+| `base:<ref>` | merge base of `HEAD` and `origin/<default-branch>` | Git ref to diff the working tree against |
+| `staged` | off | Review only the staging area (`git diff --cached`) instead of the base-to-working-tree diff |
 | `path:<glob>` | (all files) | Restrict the review to files matching the glob |
 
 Arguments are optional. The skill resolves defaults from `git` state and from
@@ -175,29 +175,40 @@ Arguments are optional. The skill resolves defaults from `git` state and from
 Collect the diff to review. Resolve the base ref and the path glob from the
 developer's arguments; apply defaults when absent.
 
+Unless `staged` is set, diff the base against the working tree, not against `HEAD`.
+The developer usually runs this skill before committing, so the review covers the branch's commits and the staged and unstaged changes to tracked files.
+
 ```bash
 # Resolve the merge base (default case — no explicit base ref)
 git merge-base HEAD origin/<default-branch>
 
-# Full branch diff against the merge base
-git diff <merge-base>..HEAD -- <path-glob>
+# Full diff: the base (explicit base ref or merge base) against the working tree
+git diff <base> -- <path-glob>
+
+# Untracked files, which no diff shows
+git ls-files --others --exclude-standard -- <path-glob>
 
 # Staged-only variant (when the `staged` argument is set)
 git diff --cached -- <path-glob>
 
-# Metadata: summary of files changed
-git diff --stat <merge-base>..HEAD -- <path-glob>
+# Metadata: summary of files changed (--cached in place of <base> for a staged-only review)
+git diff --stat <base> -- <path-glob>
 ```
 
-Confirm the collected diff is non-empty before proceeding. If the diff is empty,
-report "Nothing to review — working tree and staging area are clean against `<base>`"
-and stop.
+Confirm the collected diff is non-empty before proceeding. If it is empty, stop and report what was checked:
+
+- Default or `base:<ref>` review: "Nothing to review — no committed, staged, or unstaged changes to tracked files against `<base>`".
+  When `untracked_files` is not empty, append "Untracked files (not reviewed): `<files>` — `git add` the ones that belong in the change, then re-run."
+- Staged-only review: "Nothing to review — nothing is staged."
 
 Record:
 - `resolved_base` — the ref used: an explicit base ref, the derived merge-base
   SHA, or the literal string `staged` when the `staged` argument is set (the
   staging area has no base ref to diff against)
 - `files_changed`, `lines_added`, `lines_removed` — from `git diff --stat`
+- `untracked_files` — from `git ls-files --others --exclude-standard`; empty for a staged-only review, which skips that command.
+  Never read or review an untracked file's content: it may be scratch output or a secret the developer never meant to commit.
+  The report lists those files so the developer can `git add` the ones that belong in the change and re-run.
 - `diff_text` — the full unified diff (passed to each sub-agent)
 
 ---
@@ -324,6 +335,7 @@ which Agentic Pairing skill the developer invokes.
 **Base:** <resolved-base-ref>
 **Files changed:** <N> (<added> added, <modified> modified, <deleted> deleted)
 **Diff size:** <lines-added> additions, <lines-removed> deletions
+**Untracked (not reviewed):** <untracked files, with a reminder to `git add` the ones that belong in the change; omit this line when there are none>
 **Passes:** correctness · security · conventions (independent, parallel)
 
 ---

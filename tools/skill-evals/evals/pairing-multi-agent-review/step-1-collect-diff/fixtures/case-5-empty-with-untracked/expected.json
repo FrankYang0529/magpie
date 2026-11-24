@@ -1,0 +1,9 @@
+{
+  "resolved_base": "d82f6b1",
+  "files_changed": 0,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "untracked_files": ["notes/todo.md", "scripts/try_patch.py"],
+  "diff_empty": true,
+  "stop_reason": "Nothing to review — no committed, staged, or unstaged changes to tracked files against `d82f6b1`. Untracked files (not reviewed): `notes/todo.md`, `scripts/try_patch.py` — `git add` the ones that belong in the change, then re-run."
+}

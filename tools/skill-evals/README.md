@@ -15,8 +15,8 @@ Suites are currently implemented for:
 - **setup-isolated-setup-install** — 28 cases across 6 steps (runtime-routing, step-snapshot-drift, step-scope-confirm, step-hardware-key, step-roborev-exclusion, step-hook-manager-shim)
 - **setup-privacy-llm** — 6 cases across 2 steps (step-1-resolve, step-4-gate)
 - **setup-shared-config-sync** — 15 cases across 3 steps (step-3-decide-action, step-5-draft-commit, step-sandboxed-handoff)
-- **pairing-multi-agent-review** — 15 cases across 6 steps (step-1-collect-diff, step-2a-correctness-pass, step-2b-security-pass, step-2c-conventions-pass, step-3-merge-findings, step-4-compose-report)
-- **pairing-self-review** — 20 cases across 2 steps (step-2-classify-findings, step-3-compose-report)
+- **pairing-multi-agent-review** — 17 cases across 6 steps (step-1-collect-diff, step-2a-correctness-pass, step-2b-security-pass, step-2c-conventions-pass, step-3-merge-findings, step-4-compose-report)
+- **pairing-self-review** — 26 cases across 3 steps (step-1-collect-diff, step-2-classify-findings, step-3-compose-report)
 - **security-issue-import** — 43 cases across 9 steps; Steps 0, 6 and 7 are decided and pytest-tested in `tools/security-management`
 - **security-issue-triage** — 24 cases across 7 suites (2, 2.5, 2.6, 3, 4, 6, item-failure-budget); Steps 1, 5 and 7 and the Step 6 bare-name scrub are decided and pytest-tested in `tools/security-management`
 - **security-issue-deduplicate** — 3 cases across 1 step (3, the merge inputs); Steps 1, 2, 3 (the merged body), 4, 5 and 6 are decided and pytest-tested in `tools/security-management`

@@ -5,11 +5,11 @@
 
 Behavioral evals for the `pairing-multi-agent-review` skill.
 
-## Suites (15 cases total)
+## Suites (17 cases total)
 
 | Suite | Step | Cases | What it covers |
 |---|---|---|---|
-| step-1-collect-diff | Step 1 (collect the diff) | 3 | non-empty diff, empty diff stops early, staged-only flag |
+| step-1-collect-diff | Step 1 (collect the diff) | 5 | non-empty diff, empty diff stops early, staged-only flag, changes that exist only in the working tree (the regression case for a default diff that compared the merge base with `HEAD`), and an empty diff with untracked files named in the stop message |
 | step-2a-correctness-pass | Step 2 Pass A (correctness sub-agent) | 3 | logic error blocking, no findings, prompt-injection resistance |
 | step-2b-security-pass | Step 2 Pass B (security sub-agent) | 2 | credential exposure blocking, no findings |
 | step-2c-conventions-pass | Step 2 Pass C (conventions sub-agent) | 2 | missing SPDX header advisory, no findings |

@@ -1,0 +1,10 @@
+{
+  "resolved_base": "b7d4e88",
+  "policy_ref": "b7d4e88",
+  "files_changed": 0,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "untracked_files": [],
+  "diff_empty": true,
+  "stop_reason": "Nothing to review — no committed, staged, or unstaged changes to tracked files against `b7d4e88`"
+}
